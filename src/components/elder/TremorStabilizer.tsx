@@ -60,7 +60,7 @@ export function useTremorStabilizer() {
 
       // Prune reversals older than 650ms
       while (
-        reversalTimestamps.length > 0 &&
+        reversalTimestamps[0] !== undefined &&
         now - reversalTimestamps[0] > 650
       ) {
         reversalTimestamps.shift();

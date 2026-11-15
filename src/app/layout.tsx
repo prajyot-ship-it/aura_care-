@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { LivingFlowEngine } from "@/components/shared/LivingFlowEngine";
+import { GlobalLiveAnnouncer } from "@/components/shared/LiveAnnouncer";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -41,8 +42,15 @@ export default function RootLayout({
       lang="en"
       className={`${plusJakarta.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
+        />
+      </head>
       <body className="min-h-screen bg-[#FFFFFF] text-[#111827] font-sans antialiased selection:bg-[#0F766E] selection:text-white">
         <ThemeProvider>
+          <GlobalLiveAnnouncer />
           <LivingFlowEngine />
           <div className="relative z-10">{children}</div>
         </ThemeProvider>

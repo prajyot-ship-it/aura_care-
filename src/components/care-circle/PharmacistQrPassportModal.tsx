@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { createPortal } from "react-dom";
+import { AccessibleModal } from "@/components/shared/AccessibleModal";
 import { QRCodeSVG } from "qrcode.react";
 import {
   QrCode,
@@ -83,20 +83,15 @@ export function PharmacistQrPassportTrigger({
         <span>Pharmacist QR Passport &amp; 24h Curve</span>
       </button>
 
-      {isOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 overflow-y-auto"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Pharmacist QR Passport and Interactive 24-Hour Circadian Absorption Timeline"
-            onClick={() => setIsOpen(false)}
-          >
-            <div
-              className="bento-card max-w-5xl w-full p-6 sm:p-8 border border-[#10B981] shadow-2xl space-y-6 my-8"
-              onClick={(e) => e.stopPropagation()}
-            >
+      <AccessibleModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        ariaLabel="Pharmacist QR Passport and Interactive 24-Hour Circadian Absorption Timeline"
+      >
+        <div
+          className="bento-card max-w-5xl w-full p-6 sm:p-8 border border-[#10B981] shadow-2xl space-y-6 my-8"
+          onClick={(e) => e.stopPropagation()}
+        >
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#E2DDD5]">
               <div>
@@ -345,10 +340,8 @@ export function PharmacistQrPassportTrigger({
                 </div>
               </div>
             </div>
-          </div>
-        </div>,
-          document.body
-        )}
+        </div>
+      </AccessibleModal>
     </>
   );
 }

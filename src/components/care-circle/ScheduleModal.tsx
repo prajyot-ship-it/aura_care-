@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { AccessibleModal } from "@/components/shared/AccessibleModal";
+import { announceToScreenReader } from "@/components/shared/LiveAnnouncer";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   X,
@@ -82,8 +83,12 @@ const ACTIVE_CIRCADIAN_SLOTS = [
 ];
 
 function timeToHourDecimal(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return 8;
+  const parts = hhmm.split(":").map(Number);
+  const h = parts[0];
+  const m = parts[1];
+  if (h === undefined || m === undefined || Number.isNaN(h) || Number.isNaN(m)) {
+    return 8;
+  }
   return h + m / 60;
 }
 
@@ -144,6 +149,9 @@ export function ScheduleModal({
       BASELINE_ACTIVE_MEDS
     );
     setEvaluation(localEval);
+    if (localEval.hasConflicts) {
+      announceToScreenReader("Clinical safety alert detected");
+    }
 
     // 2. Also query server / fallback API in case additional dynamic meds were added
     try {
@@ -178,7 +186,7 @@ export function ScheduleModal({
     }
   }, [isOpen, runLivePolypharmacyCheck]);
 
-  if (!isOpen || typeof document === "undefined") return null;
+  if (!isOpen) return null;
 
   const candidateTimes = parseTimes(scheduledTimesText);
 
@@ -275,13 +283,12 @@ export function ScheduleModal({
     }
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add or Propose Medication with Live Polypharmacy Guardrail"
-      onClick={onClose}
+  return (
+    <AccessibleModal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Add or Propose Medication with Live Polypharmacy Guardrail"
+      overlayClassName="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto"
     >
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.98, y: 10 }}
@@ -694,7 +701,6 @@ export function ScheduleModal({
           </div>
         </form>
       </motion.div>
-    </div>,
-    document.body
+    </AccessibleModal>
   );
 }

@@ -1,8 +1,8 @@
-name: Build & Deploy AURA-CARE to GitHub Pages
+name: Build, Test & Deploy AURA-CARE to GitHub Pages
 
 on:
   push:
-    branches: ["main", "master"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  quality-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,6 +32,23 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+
+      - name: Strict TypeScript Check
+        run: npm run typecheck
+
+      - name: ESLint Zero-Warning Check
+        run: npm run lint
+
+      - name: Vitest Unit & Integration Coverage Gate
+        run: npm run test:coverage
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Production App & Run E2E + WCAG Accessibility Suite
+        run: |
+          npm run build
+          npx playwright test
 
       - name: Prepare static export for GitHub Pages (client-side CareVault fallback handles /api/* on github.io)
         run: |
@@ -53,7 +70,7 @@ jobs:
           force_orphan: true
 
   deploy:
-    needs: build
+    needs: quality-and-build
     runs-on: ubuntu-latest
     continue-on-error: true
     environment:

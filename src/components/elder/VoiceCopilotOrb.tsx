@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { createPortal } from "react-dom";
+import { AccessibleModal } from "@/components/shared/AccessibleModal";
 import { Mic, MicOff, Volume2, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { ElderDoseItem } from "./TactilePillCard";
 
@@ -191,9 +191,11 @@ export function VoiceCopilotOrb({
       recognition.maxAlternatives = 1;
 
       recognition.onresult = (event: SpeechRecognitionEventLike) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results[0]?.[0]?.transcript ?? "";
         setIsListening(false);
-        processVoiceCommand(transcript);
+        if (transcript) {
+          processVoiceCommand(transcript);
+        }
       };
 
       recognition.onerror = () => {
@@ -224,20 +226,15 @@ export function VoiceCopilotOrb({
         <span>Talk to Aura (Voice AI)</span>
       </button>
 
-      {isOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 overflow-y-auto"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Talk to Aura Hands-Free Voice Co-Pilot"
-            onClick={() => setIsOpen(false)}
-          >
-            <div
-              className="bento-card max-w-2xl w-full p-7 sm:p-9 border-2 border-[#10B981] shadow-2xl space-y-6 my-8"
-              onClick={(e) => e.stopPropagation()}
-            >
+      <AccessibleModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        ariaLabel="Talk to Aura Hands-Free Voice Co-Pilot"
+      >
+        <div
+          className="bento-card max-w-2xl w-full p-7 sm:p-9 border-2 border-[#10B981] shadow-2xl space-y-6 my-8"
+          onClick={(e) => e.stopPropagation()}
+        >
             <div className="flex items-center justify-between gap-4 pb-4 border-b border-[#E2DDD5]">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0F766E] to-[#2563EB] text-white flex items-center justify-center shadow-md">
@@ -332,10 +329,8 @@ export function VoiceCopilotOrb({
                 ))}
               </div>
             </div>
-          </div>
-        </div>,
-          document.body
-        )}
+        </div>
+      </AccessibleModal>
     </>
   );
 }

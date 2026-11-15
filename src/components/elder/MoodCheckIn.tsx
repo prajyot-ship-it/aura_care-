@@ -67,7 +67,7 @@ export function MoodCheckIn({
   const [submittingQuestion, setSubmittingQuestion] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const doctorShort = primaryPhysician.split("(")[0].trim();
+  const doctorShort = (primaryPhysician.split("(")[0] ?? primaryPhysician).trim();
 
   async function handleTapMood(tile: (typeof SYMPTOM_TILES)[number]) {
     setSubmittingMood(true);

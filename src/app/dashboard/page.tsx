@@ -387,7 +387,7 @@ export default function CareCircleDashboardPage() {
               </span>
             </div>
             <div className="my-1">
-              {lowStockMeds.length > 0 ? (
+              {lowStockMeds[0] ? (
                 <div className="flex items-baseline justify-between">
                   <span className="font-display text-xl font-bold text-[#111827]">
                     {lowStockMeds[0].name} {lowStockMeds[0].dosage}

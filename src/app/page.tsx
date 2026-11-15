@@ -126,7 +126,7 @@ export default function VaultLoginPage() {
   const [previewIdx, setPreviewIdx] = useState(0);
   const [previewLocked, setPreviewLocked] = useState(true);
 
-  const activePreview = PREVIEW_PILLS[previewIdx];
+  const activePreview = PREVIEW_PILLS[previewIdx] ?? PREVIEW_PILLS[0]!;
 
   const submitPasscode = useCallback(
     async (codeToUse: string, pinToUse: string) => {
@@ -593,7 +593,7 @@ export default function VaultLoginPage() {
                   <span className={`w-2 h-2 rounded-full ${role.pillDot}`} />
                   <Icon className="w-3.5 h-3.5 opacity-90" />
                   <span>{role.shortLabel}</span>
-                  <span className="font-mono text-[11px] opacity-80">
+                  <span className="font-mono text-[11px] text-white">
                     ({role.pin})
                   </span>
                   <ArrowUpRight className="w-3.5 h-3.5 opacity-75" />

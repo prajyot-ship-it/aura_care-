@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { StudioLightingRig } from "./StudioLightingRig";
+import { WebGLErrorBoundary } from "./WebGLErrorBoundary";
 
 export interface CircadianDoseNode {
   id: string;
@@ -326,23 +327,29 @@ export default function CareCircleOrbit3D(props: CareCircleOrbit3DProps) {
 
       {/* Live WebGL 3D Layer */}
       {webglReady && (
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <Canvas
-            dpr={[1, 1.5]}
-            camera={{ position: [0, 0, 3.65], fov: 42 }}
-            gl={{ antialias: true, alpha: true }}
-            onCreated={({ gl }) => {
-              gl.setClearColor(0x000000, 0);
-            }}
-          >
-            <StudioLightingRig
-              shadowY={-1.6}
-              shadowScale={6}
-              shadowOpacity={0.14}
-            />
-            <CircadianRingStage {...props} />
-          </Canvas>
-        </div>
+        <WebGLErrorBoundary fallback={null}>
+          <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+            <Canvas
+              dpr={[1, 1.5]}
+              camera={{ position: [0, 0, 3.65], fov: 42 }}
+              gl={{ antialias: true, alpha: true }}
+              onCreated={({ gl }) => {
+                gl.setClearColor(0x000000, 0);
+                gl.domElement.addEventListener("webglcontextlost", (e) => {
+                  e.preventDefault();
+                  setWebglReady(false);
+                });
+              }}
+            >
+              <StudioLightingRig
+                shadowY={-1.6}
+                shadowScale={6}
+                shadowOpacity={0.14}
+              />
+              <CircadianRingStage {...props} />
+            </Canvas>
+          </div>
+        </WebGLErrorBoundary>
       )}
 
       <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none text-[10px] font-mono text-slate-600 z-10">

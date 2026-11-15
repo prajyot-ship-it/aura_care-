@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { StudioLightingRig } from "./StudioLightingRig";
+import { WebGLErrorBoundary } from "./WebGLErrorBoundary";
 
 export interface HeroCareOrbSceneProps {
   pinLength: number;
@@ -496,30 +497,36 @@ export default function HeroCareOrbScene({
         </svg>
       </div>
 
-      {/* Live WebGL 3D Layer on Top */}
+      {/* Live WebGL 3D Layer on Top (guarded by ErrorBoundary + context-loss fallback) */}
       {webglReady && (
-        <div className="absolute inset-0">
-          <Canvas
-            dpr={[1, 1.5]}
-            camera={{ position: [0, 0.2, 4.6], fov: 42 }}
-            gl={{ antialias: true, alpha: true }}
-            onCreated={({ gl }) => {
-              gl.setClearColor(0x000000, 0);
-            }}
-          >
-            <StudioLightingRig
-              shadowY={-1.85}
-              shadowScale={8}
-              shadowOpacity={0.14}
-            />
-            <OrbAssembly
-              pinLength={pinLength}
-              isUnlocking={isUnlocking}
-              activePillIndex={activePillIndex}
-              reducedMotion={reducedMotion}
-            />
-          </Canvas>
-        </div>
+        <WebGLErrorBoundary fallback={null}>
+          <div className="absolute inset-0">
+            <Canvas
+              dpr={[1, 1.5]}
+              camera={{ position: [0, 0.2, 4.6], fov: 42 }}
+              gl={{ antialias: true, alpha: true }}
+              onCreated={({ gl }) => {
+                gl.setClearColor(0x000000, 0);
+                gl.domElement.addEventListener("webglcontextlost", (e) => {
+                  e.preventDefault();
+                  setWebglReady(false);
+                });
+              }}
+            >
+              <StudioLightingRig
+                shadowY={-1.85}
+                shadowScale={8}
+                shadowOpacity={0.14}
+              />
+              <OrbAssembly
+                pinLength={pinLength}
+                isUnlocking={isUnlocking}
+                activePillIndex={activePillIndex}
+                reducedMotion={reducedMotion}
+              />
+            </Canvas>
+          </div>
+        </WebGLErrorBoundary>
       )}
     </div>
   );

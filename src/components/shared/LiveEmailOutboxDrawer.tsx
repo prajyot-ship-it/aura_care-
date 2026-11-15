@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { AccessibleModal } from "./AccessibleModal";
 import { Mail, X, RefreshCw, CheckCircle2, AlertTriangle, Clock, Calendar, FileText } from "lucide-react";
 import { EmailOutboxRecord, EmailTier } from "@/lib/types";
 
@@ -31,7 +31,7 @@ export function LiveEmailOutboxDrawer({
       };
       if (json.success && json.data) {
         setEmails(json.data.emails);
-        if (json.data.emails.length > 0 && !selectedEmailId) {
+        if (json.data.emails[0] && !selectedEmailId) {
           setSelectedEmailId(json.data.emails[0].id);
         }
       }
@@ -95,13 +95,12 @@ export function LiveEmailOutboxDrawer({
     }
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex justify-end bg-slate-950/60 backdrop-blur-xs"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Live Email Outbox Inspector Drawer"
-      onClick={onClose}
+  return (
+    <AccessibleModal
+      isOpen={isOpen}
+      onClose={onClose}
+      variant="drawer-right"
+      ariaLabel="Live Email Outbox Inspector Drawer"
     >
       <div
         className="w-full max-w-5xl bg-white h-dvh max-h-dvh shadow-2xl flex flex-col border-l border-slate-200 overflow-hidden"
@@ -260,7 +259,6 @@ export function LiveEmailOutboxDrawer({
           </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </AccessibleModal>
   );
 }

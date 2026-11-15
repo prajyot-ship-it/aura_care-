@@ -13,10 +13,12 @@ interface MutexStatusBadgeProps {
 
 function getInitials(name: string | null): string {
   if (!name) return "AP";
-  const cleaned = name.split("(")[0].replace(", RN", "").trim();
+  const cleaned = (name.split("(")[0] ?? "").replace(", RN", "").trim();
   const parts = cleaned.split(/\s+/);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  const firstChar = parts[0]?.[0] ?? "";
+  const secondChar = parts[1]?.[0] ?? "";
+  if (firstChar && secondChar) {
+    return `${firstChar}${secondChar}`.toUpperCase();
   }
   return cleaned.slice(0, 2).toUpperCase();
 }

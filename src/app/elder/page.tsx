@@ -162,7 +162,7 @@ function ElderSovereignContent() {
   }
 
   const { vault, todayDoses, pendingProposals, appointments } = vaultState;
-  const firstName = vault.elderName.split(" ")[0];
+  const firstName = vault.elderName.split(" ")[0] ?? "Arthur";
 
   const morningDoses = todayDoses.filter(
     (d) => new Date(d.scheduledFor).getHours() < 12

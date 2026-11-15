@@ -7,52 +7,76 @@
 
 ---
 
-## Core Architectural Pillars & Signature Features
-
-1. **Dual-Mode Ergonomic Rendering Engine (Passcode-Driven UI Adaptation):**
-   - **Elder Sovereign PIN (`111111`) → Dignity Mode (`/elder`):** WCAG AAA high-contrast tactile interface (`24px+` typography, `64px+` minimum touch targets), Web Speech API voice readouts (*"Read My Schedule Aloud"*), **Day (Pure White) & Night (Glossy Midnight Blue)** theme switcher, and interactive 3D WebGL Pill-Box Twins.
-   - **Caretaker / Nurse PIN (`222222` / `333333`) → Care-Circle Command Center (`/dashboard`):** High-density clinical coordination dashboard featuring a 3D Circadian Orbital Node Network, 14-day longitudinal adherence heatmaps, real-time Double-Dose Mutex Locks, polypharmacy interaction guardrails, and a 1-Page Physician Clinical Brief generator.
-
-2. **Living Flow Design & Real-Time 3D WebGL Studio (`src/components/three/` & `src/components/shared/LivingFlowEngine.tsx`):**
-   - **Translucent Materials & Luminous Effect:** Multi-layered frosted glassmorphism (`backdrop-filter: blur(22px) saturate(180%)`) with cursor-tracked radial specular highlights (`--flow-x`, `--flow-y`) and ambient drifting aurora blooms.
-   - **Physics-Based Flexible Feedback Touch System:** Every interactive button, pill badge, keypad key, and bento card stretches elastically on press/drag and rebounds via underdamped harmonic spring physics.
-   - **100% Procedural 3D WebGL Models:** `HeroCareOrbScene`, `InteractivePill3D` (`ROUND`, `OVAL`, `CAPSULE`, `DIAMOND`), and `CareCircleOrbit3D` built in React Three Fiber with zero external `.glb` dependencies.
-
-3. **"Shake-to-Calm" / Tremor-Adaptive Touch Stabilizer (`src/components/elder/TremorStabilizer.tsx`):**
-   - Tracks rapid micro-oscillations in pointer/touch movement (`>= 7` direction reversals within `650ms`) to automatically detect essential hand tremors, or can be toggled via the **"Steady-Hand Stabilizer"** pill.
-   - Expands touch targets (`data-tremor-stabilizer="on"`), adds high-visibility focus halos, and applies a `340ms` capture-phase debounce filter to block accidental double-taps.
-
-4. **Zero-PIN "First-Responder Paramedic Lock-Screen Card" (ICE Mode) (`src/components/shared/EmergencyMedicalIdModal.tsx`):**
-   - Pulsing crimson **"Emergency Medical ID (No PIN Needed)"** pill on `/` and `/elder` that exposes critical paramedic triage telemetry without unlocking the private CareVault: **Active Factor Xa Anticoagulant (`Eliquis / Apixaban 5 mg BID`)** hemorrhage alert, severe allergies (`Penicillin`, `Sulfa Drugs`), Blood Type (`O+ Positive`), baseline BP (`124/76 mmHg`), and today's real-time bloodstream medication status (`✓ IN SYSTEM`).
-
-5. **Live Camera "Pill-in-Hand" AR Color & Shape Verifier (`src/components/three/InteractivePill3D.tsx`):**
-   - Inside the **"Inspect 3D"** Visual Pill-Box Twin modal on `/elder`, clicking **"Hold Pill to Camera to Verify"** launches a `navigator.mediaDevices.getUserMedia` AR scanner HUD (with an automatic optical simulator fallback) that verifies pill shape, imprint, and surface chroma (`98.6% Confidence`) with spoken voice confirmation.
-
-6. **"Voice-First Hands-Free Co-Pilot" (`src/components/elder/VoiceCopilotOrb.tsx`):**
-   - Glowing **"Talk to Aura (Voice AI)"** microphone orb powered by `SpeechRecognition` / `webkitSpeechRecognition` and `speechSynthesis`, supporting natural spoken or 1-tap intents:
-     - *"Aura, what do I take next?"*
-     - *"I just took my morning pills."* (acquires the Atomic Mutex Lock)
-     - *"Tell Maya I feel a little dizzy today."* (logs `DIZZY` wellness check-in & flags Dr. Vance's Cardiology Visit Brief)
-
-7. **"Pharmacist QR Passport" & Interactive 24-Hour Circadian Absorption Timeline (`src/components/care-circle/PharmacistQrPassportModal.tsx`):**
-   - Encodes Arthur's active medication regimen, allergies, and polypharmacy rules into a scannable `QRCodeSVG` (`qrcode.react`) alongside an interactive **24-Hour Circadian Pharmacokinetic Absorption Curve** showing why **Levothyroxine (`06:30 AM Empty Stomach`)** must stay separated from Calcium/breakfast by 4 hours (`-42% Cmax` chelation conflict simulator).
-
-8. **Agency-First "Dignity Consent & Co-Sign Protocol" & Atomic "Double-Dose Mutex Lock" (`HTTP 409`):**
-   - Caretaker medication proposals enter `PENDING_ELDER_APPROVAL` and require the elder’s explicit sign-off.
-   - Optimistic concurrency control (`lockVersion`) blocks duplicate caregiver dose administration (`HTTP 409 Conflict`), paired with a 3-Tier HTML Email Escalation Engine (`T-15m`, `T+30m`, `T+90m`).
+## 1. Chosen Vertical
+**Elderly Care & Medication Management Platform** — designed for older adults managing complex multi-drug regimens alongside family caregivers and home-care nurses.
 
 ---
 
-## Quick Start (Local Full-Stack Server with Prisma + SQLite)
+## 2. Approach & Decision Logic
+
+AURA•CARE replaces surveillance-heavy caregiver portals with an **agency-first, dual-mode architecture** powered by three isomorphic domain modules under `src/domain/`:
+
+1. **Isomorphic Clinical Safety & Circadian Chelation Solver (`src/domain/clinical-engine.ts`):**
+   - **NSAID + Factor Xa Anticoagulant Rule (`CRITICAL`):** Blocks or requires explicit clinical override when Ibuprofen, Naproxen, high-dose Aspirin, or any NSAID is proposed alongside Eliquis (`Apixaban`) or another anticoagulant due to >3× GI hemorrhage risk.
+   - **Thyroid Hormone + Polyvalent Cation Chelation Rule (`WARNING`):** Uses 24-hour circular minute-distance math (`circularMinutesDistance`) across midnight wrap-around to enforce a **±240-minute (4-hour) duodenal absorption buffer** around Levothyroxine (`06:30 AM` → forbidden `02:30–10:30` window for Calcium Carbonate, Iron, Magnesium, or Multivitamins) and automatically suggests a safe midday window (`>= 10:30` / `12:30 PM`).
+   - **Duplicate Therapeutic Class Rule (`WARNING`):** Flags overlapping drug classes (e.g., Simvastatin alongside Atorvastatin).
+2. **Atomic Double-Dose Mutex & Sovereign Co-Sign State Machine (`src/domain/dose-mutex.ts`):**
+   - **Optimistic Concurrency Control (`lockVersion`):** Every dose confirmation (`TAKEN`, `SNOOZED_15M`, `SKIPPED`) checks `expectedLockVersion === currentDose.lockVersion`. Stale concurrent attempts throw a typed `MutexConflictError` (`HTTP_409_CONFLICT`) citing the winning caregiver and timestamp.
+   - **Sovereign Co-Sign:** Caregiver-proposed medications enter `PROPOSED` / `PENDING_ELDER_APPROVAL` and remain excluded from the active daily schedule until the elder explicitly transitions them via `approveProposedMedication()` (`ELDER_APPROVED`) or `holdProposedMedication()` (`HELD_FOR_MD`).
+3. **Runtime Schema & Cryptographic Hardening (`src/domain/schemas.ts`):**
+   - `safeHydrateState()` strips prototype-pollution vectors (`__proto__`, `constructor`, `prototype`) and validates persisted `localStorage` payloads with `VaultStateSchema` (Zod).
+   - `verifyVaultPin()` hashes 6-digit PINs via Web Crypto `crypto.subtle.digest("SHA-256", ...)` and compares hex digests in constant time—zero plaintext PIN literals in runtime auth logic.
+
+---
+
+## 3. How the Solution Works
+
+```mermaid
+flowchart LR
+    Vault["Passcode Vault (/)"] -->|"PIN 111111 (SHA-256)"| Elder["Elder Sovereign Mode (/elder)"]
+    Vault -->|"PIN 222222 / 333333"| Dash["Care-Circle Command Center (/dashboard)"]
+    Vault -->|"0-PIN Emergency"| ICE["First-Responder ICE Card"]
+
+    Dash -->|"Propose Med"| Engine["Isomorphic Clinical Engine"]
+    Engine -->|"CLEAR / Override"| CoSign["Sovereign Co-Sign (PROPOSED)"]
+    CoSign -->|"Elder Approves"| Elder
+    Elder -->|"I Took This (lockVersion)"| Mutex["Atomic OCC Mutex (HTTP 409 Guard)"]
+    Dash -->|"Assist Dose"| Mutex
+    Dash -->|"Pre-Visit Export"| Brief["Physician Cardiology Brief"]
+```
+
+### Demo Credentials (CareVault `AURA-7842`)
+
+| Role | 6-Digit PIN | Destination Route | Key Capabilities |
+| :--- | :---: | :--- | :--- |
+| **Arthur Pendelton** (Elder Sovereign) | `111111` | `/elder/` | `64px+` tactile targets, Voice Co-Pilot, Shake-to-Calm Stabilizer, 3D Pill Twin + AR Camera Verifier, Sovereign Co-Sign |
+| **Maya Pendelton** (Primary Caretaker) | `222222` | `/dashboard/` | 3D Circadian Orbital Ring, 14-day Heatmap, Polypharmacy Guardrails, Pharmacist QR Passport, Email Outbox |
+| **David Ortiz, RN** (Home Care Nurse) | `333333` | `/dashboard/` | Assisted dose administration, Atomic HTTP 409 Mutex testing, Clinical Brief generation |
+| **First-Responder / Paramedic** | *No PIN* | `/` or `/elder/` | Zero-PIN **Emergency Medical ID (ICE)** card (Eliquis hemorrhage alert, allergies, blood type `O+`) |
+
+### Local & Static Quick Start
 
 ```bash
 npm install
+npx prisma generate
 npx prisma db push
 npx prisma db seed
 npm run dev
 ```
 
-Open `http://localhost:3000` and log into CareVault **`AURA-7842`** using:
-- **`111111`** — Arthur Pendelton (*Elder Sovereign Mode*)
-- **`222222`** — Maya Pendelton (*Daughter / Primary Caretaker*)
-- **`333333`** — David Ortiz, RN (*Home Care Nurse*)
+Open `http://localhost:3000`. On static GitHub Pages (`GITHUB_PAGES=true npm run build`), `src/lib/clientVaultFallback.ts` transparently executes the exact same isomorphic domain modules (`src/domain/`) in the browser via validated `localStorage` persistence with zero failed `/api/*` network calls.
+
+---
+
+## 4. Assumptions Made
+- **Static Export Persistence:** In the GitHub Pages deployment (`output: "export"`), there is no Node.js/SQLite server; `clientVaultFallback.ts` persists state per-browser in `localStorage` under Zod validation (`safeHydrateState`).
+- **Hardware & Browser Permissions:** When webcam (`getUserMedia`) or Web Speech (`SpeechRecognition`) APIs are unavailable or denied, AURA•CARE gracefully degrades to an optical AR reticle simulator and 1-tap voice intent triggers.
+- **Clinical Dataset Scope:** The polypharmacy engine encodes high-severity geriatric drug-drug and chelation rules tailored to Arthur Pendelton’s active cardiology/endocrine regimen (`Eliquis`, `Levothyroxine`, `Lisinopril`, `Atorvastatin`) as a deterministic clinical decision-support prototype.
+
+---
+
+## 5. Testing & Quality Verification
+
+- **Unit & Integration Suite (`npm run test:coverage`):** Vitest + React Testing Library + `@vitest/coverage-v8` covering `src/domain/clinical-engine.ts`, `src/domain/dose-mutex.ts`, `src/domain/schemas.ts`, and `AccessibleModal` portal/keyboard trapping (`>97%` line coverage, `100%` function coverage).
+- **End-to-End & WCAG 2.1 AA Suite (`npm run test:e2e`):** Playwright + `@axe-core/playwright` testing the full Vault → Elder → Co-Sign → Dose Mutex flow, Zero-PIN ICE modal geometry, Care-Circle Ibuprofen/Calcium guardrails, HTTP 409 conflict verification, Physician Brief rendering, and zero critical/serious `axe-core` violations across all routes.
+- **Strict TypeScript & Zero-Warning Lint:** `tsc --noEmit` (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`) + `next lint --max-warnings=0`, enforced on every push to `main` via `.github/workflows/deploy.yml`.

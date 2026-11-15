@@ -1,6 +1,8 @@
 "use client";
 
 import { evaluatePolypharmacyConflicts } from "./polypharmacyEngine";
+import { safeHydrateState, verifyVaultPin } from "@/domain/schemas";
+import { acquireDoseMutexLock, MutexConflictError } from "@/domain/dose-mutex";
 
 const STORAGE_KEY = "aura_care_static_vault_v1";
 const SESSION_KEY = "aura_care_static_session_v1";
@@ -323,17 +325,14 @@ function getInitialVaultData() {
 function loadStore() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as ReturnType<typeof getInitialVaultData>;
+    const hydrated = safeHydrateState(raw, getInitialVaultData);
+    if (!raw) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(hydrated));
+    }
+    return hydrated;
   } catch {
-    // ignore
+    return getInitialVaultData();
   }
-  const initial = getInitialVaultData();
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
-  } catch {
-    // ignore
-  }
-  return initial;
 }
 
 function saveStore(store: ReturnType<typeof getInitialVaultData>) {
@@ -386,55 +385,26 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
   const store = loadStore();
   const session = getSession();
 
-  // 1. POST / DELETE /api/auth/passcode
+  // 1. POST / DELETE /api/auth/passcode (SHA-256 + Constant-Time PIN Verification)
   if (path.endsWith("/api/auth/passcode")) {
     if (method === "DELETE") {
       return jsonResponse({ success: true });
     }
     const pin = String(body.passcode || "");
-    if (pin === "111111") {
+    const verified = await verifyVaultPin(pin);
+    if (verified) {
       const s: StaticSession = {
-        memberId: "mem-arthur",
+        memberId: verified.memberId,
         vaultId: store.vault.id,
         vaultCode: store.vault.vaultCode,
-        name: "Arthur Pendelton",
-        role: "ELDER",
-        relationship: "Self (Elder Sovereign)",
+        name: verified.name,
+        role: verified.role === "ELDER" ? "ELDER" : "CARETAKER",
+        relationship: verified.relationship,
       };
       setSession(s);
       return jsonResponse({
         success: true,
-        data: { session: s, redirectPath: "/elder" },
-      });
-    }
-    if (pin === "222222") {
-      const s: StaticSession = {
-        memberId: "mem-maya",
-        vaultId: store.vault.id,
-        vaultCode: store.vault.vaultCode,
-        name: "Maya Pendelton",
-        role: "CARETAKER",
-        relationship: "Daughter (Primary Caretaker)",
-      };
-      setSession(s);
-      return jsonResponse({
-        success: true,
-        data: { session: s, redirectPath: "/dashboard" },
-      });
-    }
-    if (pin === "333333") {
-      const s: StaticSession = {
-        memberId: "mem-david",
-        vaultId: store.vault.id,
-        vaultCode: store.vault.vaultCode,
-        name: "David Ortiz, RN",
-        role: "CARETAKER",
-        relationship: "Home Care Nurse",
-      };
-      setSession(s);
-      return jsonResponse({
-        success: true,
-        data: { session: s, redirectPath: "/dashboard" },
+        data: { session: s, redirectPath: verified.redirectPath },
       });
     }
     return jsonResponse(
@@ -489,40 +459,59 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
     });
   }
 
-  // 3. POST /api/doses/log (Double-Dose Atomic Mutex Lock)
+  // 3. POST /api/doses/log (Double-Dose Atomic Mutex Lock via domain/dose-mutex.ts)
   if (path.endsWith("/api/doses/log") && method === "POST") {
-    const dose = store.todayDoses.find((d) => d.id === body.doseLogId);
+    const doseIndex = store.todayDoses.findIndex((d) => d.id === body.doseLogId);
+    const dose = doseIndex >= 0 ? store.todayDoses[doseIndex] : undefined;
     if (!dose) {
       return jsonResponse({ success: false, error: "Dose not found." }, 404);
     }
-    if (
-      body.expectedLockVersion !== undefined &&
-      body.expectedLockVersion !== dose.lockVersion
-    ) {
-      return jsonResponse(
-        {
-          success: false,
-          error: `HTTP 409 Atomic Mutex Conflict: Dose already locked (v${dose.lockVersion}) by ${
-            dose.loggedByName || "Care-Circle Member"
-          }. Duplicate administration blocked.`,
-        },
-        409
-      );
-    }
-    dose.status = body.action || "TAKEN";
-    dose.loggedAt = new Date().toISOString();
-    dose.loggedByName = session.name;
-    dose.lockVersion += 1;
-    if (body.note) dose.note = body.note;
-    saveStore(store);
 
-    return jsonResponse({
-      success: true,
-      data: {
-        dose,
-        mutexMessage: `Atomic Mutex Lock v${dose.lockVersion} acquired by ${session.name}.`,
-      },
-    });
+    try {
+      const action =
+        body.action === "SNOOZED" || body.action === "SNOOZED_15M"
+          ? "SNOOZED_15M"
+          : body.action === "SKIPPED"
+            ? "SKIPPED"
+            : "TAKEN";
+
+      const updated = acquireDoseMutexLock(dose, {
+        action,
+        actorName: session.name,
+        expectedLockVersion:
+          typeof body.expectedLockVersion === "number"
+            ? body.expectedLockVersion
+            : dose.lockVersion,
+        note: typeof body.note === "string" ? body.note : undefined,
+      });
+
+      store.todayDoses[doseIndex] = {
+        ...dose,
+        ...updated,
+        escalationTier: dose.escalationTier ?? 0,
+      } as (typeof store.todayDoses)[number];
+      saveStore(store);
+
+      return jsonResponse({
+        success: true,
+        data: {
+          dose: store.todayDoses[doseIndex],
+          mutexMessage: `Atomic Mutex Lock v${updated.lockVersion} acquired by ${session.name}.`,
+        },
+      });
+    } catch (err) {
+      if (err instanceof MutexConflictError) {
+        return jsonResponse(
+          {
+            success: false,
+            code: err.code,
+            error: err.message,
+          },
+          409
+        );
+      }
+      throw err;
+    }
   }
 
   // 4. POST /api/proposals/[id]

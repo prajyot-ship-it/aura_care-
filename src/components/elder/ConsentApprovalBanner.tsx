@@ -67,7 +67,7 @@ export function ConsentApprovalBanner({
     }
   }
 
-  const doctorShortName = primaryPhysician.split("(")[0].trim();
+  const doctorShortName = (primaryPhysician.split("(")[0] ?? primaryPhysician).trim();
 
   return (
     <section
