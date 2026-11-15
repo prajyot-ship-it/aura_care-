@@ -351,7 +351,7 @@ export function ScheduleModal({
                     <div
                       className={`text-[11px] mt-0.5 ${
                         name === preset.name
-                          ? "text-[#10B981]"
+                          ? "text-[#6EE7B7]"
                           : "text-slate-500"
                       }`}
                     >
@@ -371,10 +371,11 @@ export function ScheduleModal({
             {/* Form Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-brand-name" className="block text-xs font-semibold text-slate-700 mb-1">
                   Brand / Medication Name *
                 </label>
                 <input
+                  id="med-brand-name"
                   type="text"
                   required
                   value={name}
@@ -384,10 +385,11 @@ export function ScheduleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-generic-name" className="block text-xs font-semibold text-slate-700 mb-1">
                   Active Ingredient (Generic)
                 </label>
                 <input
+                  id="med-generic-name"
                   type="text"
                   value={genericName}
                   onChange={(e) => setGenericName(e.target.value)}
@@ -396,10 +398,11 @@ export function ScheduleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-drug-class" className="block text-xs font-semibold text-slate-700 mb-1">
                   Therapeutic Drug Class
                 </label>
                 <input
+                  id="med-drug-class"
                   type="text"
                   value={drugClass}
                   onChange={(e) => setDrugClass(e.target.value)}
@@ -410,10 +413,11 @@ export function ScheduleModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-dosage" className="block text-xs font-semibold text-slate-700 mb-1">
                   Dosage Strength *
                 </label>
                 <input
+                  id="med-dosage"
                   type="text"
                   required
                   value={dosage}
@@ -423,10 +427,11 @@ export function ScheduleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-scheduled-times" className="block text-xs font-semibold text-slate-700 mb-1">
                   Scheduled Times (HH:mm) *
                 </label>
                 <input
+                  id="med-scheduled-times"
                   type="text"
                   required
                   value={scheduledTimesText}
@@ -436,10 +441,11 @@ export function ScheduleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-food-rule" className="block text-xs font-semibold text-slate-700 mb-1">
                   Food &amp; Stomach Rule
                 </label>
                 <select
+                  id="med-food-rule"
                   value={foodRule}
                   onChange={(e) => setFoodRule(e.target.value as FoodRule)}
                   className="w-full px-3 py-2 rounded-xl border border-[#E2DDD5] bg-[#FAF8F5] text-sm font-semibold"
@@ -464,10 +470,11 @@ export function ScheduleModal({
 
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label htmlFor="med-pill-shape" className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Pill Shape
                   </label>
                   <select
+                    id="med-pill-shape"
                     value={pillShape}
                     onChange={(e) => setPillShape(e.target.value as PillShape)}
                     className="w-full px-2.5 py-1.5 rounded-lg border border-[#E2DDD5] text-xs font-semibold bg-white"
@@ -480,10 +487,11 @@ export function ScheduleModal({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label htmlFor="med-imprint-code" className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Imprint Code
                   </label>
                   <input
+                    id="med-imprint-code"
                     type="text"
                     maxLength={6}
                     value={pillImprint}
@@ -495,10 +503,11 @@ export function ScheduleModal({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label htmlFor="med-primary-color" className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Primary Color
                   </label>
                   <input
+                    id="med-primary-color"
                     type="color"
                     value={pillColorPrimary}
                     onChange={(e) => setPillColorPrimary(e.target.value)}
@@ -507,10 +516,11 @@ export function ScheduleModal({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label htmlFor="med-secondary-color" className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Secondary Color
                   </label>
                   <input
+                    id="med-secondary-color"
                     type="color"
                     value={pillColorSecondary}
                     onChange={(e) => setPillColorSecondary(e.target.value)}
@@ -522,10 +532,11 @@ export function ScheduleModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-instructions" className="block text-xs font-semibold text-slate-700 mb-1">
                   Plain-English Instructions for {elderName}
                 </label>
                 <input
+                  id="med-instructions"
                   type="text"
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
@@ -534,10 +545,11 @@ export function ScheduleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor="med-proposal-reason" className="block text-xs font-semibold text-slate-700 mb-1">
                   Reason for Proposal (Elder Consent Card)
                 </label>
                 <input
+                  id="med-proposal-reason"
                   type="text"
                   value={proposalReason}
                   onChange={(e) => setProposalReason(e.target.value)}

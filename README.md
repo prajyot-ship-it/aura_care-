@@ -69,6 +69,7 @@ Open `http://localhost:3000`. On static GitHub Pages (`GITHUB_PAGES=true npm run
 ---
 
 ## 4. Assumptions Made
+- **Static Export vs. Full-Stack Server Auth & Email:** In the static GitHub Pages demo (`output: "export"`), authentication uses client-side demo PINs (`111111` for Elder Arthur, `222222` for Primary Caregiver Maya, `333333` for Secondary Caregiver David) and reminder/escalation notifications are simulated via the in-app **Email Outbox Inspector** drawer. When running in full-stack server mode (`npm run dev` / `npm run start`), the API enforces signed `HttpOnly` JWT session cookies (`src/lib/auth.ts`) and dispatches live SMTP/API reminder emails (`src/lib/mailer.ts`).
 - **Static Export Persistence:** In the GitHub Pages deployment (`output: "export"`), there is no Node.js/SQLite server; `clientVaultFallback.ts` persists state per-browser in `localStorage` under Zod validation (`safeHydrateState`).
 - **Hardware & Browser Permissions:** When webcam (`getUserMedia`) or Web Speech (`SpeechRecognition`) APIs are unavailable or denied, AURA•CARE gracefully degrades to an optical AR reticle simulator and 1-tap voice intent triggers.
 - **Clinical Dataset Scope:** The polypharmacy engine encodes high-severity geriatric drug-drug and chelation rules tailored to Arthur Pendelton’s active cardiology/endocrine regimen (`Eliquis`, `Levothyroxine`, `Lisinopril`, `Atorvastatin`) as a deterministic clinical decision-support prototype.
