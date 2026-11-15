@@ -523,6 +523,19 @@ html[data-theme="night"] .text-\[\#B45309\] {
   }
 }
 
+/* ============================================================================
+   SHAKE-TO-CALM / TREMOR-ADAPTIVE TOUCH STABILIZER (STEADY-HAND MODE)
+   ============================================================================ */
+html[data-tremor-stabilizer="on"] button,
+html[data-tremor-stabilizer="on"] [role="button"] {
+  min-height: 56px;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  outline: 2px solid rgba(16, 185, 129, 0.35);
+  outline-offset: 2px;
+  transition-duration: 0.42s !important;
+}
+
 @media print {
   .no-print {
     display: none !important;

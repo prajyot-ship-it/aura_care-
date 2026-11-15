@@ -21,6 +21,8 @@ import {
 import { PillSvgTwin } from "@/components/shared/PillSvgTwin";
 import { TiltBentoCard } from "@/components/three/ScrollChoreographyCanvas";
 import { ThemeToggleButton } from "@/components/shared/ThemeProvider";
+import { EmergencyMedicalIdTrigger } from "@/components/shared/EmergencyMedicalIdModal";
+import { SteadyHandToggleButton } from "@/components/elder/TremorStabilizer";
 
 const HeroCareOrbScene = dynamic(
   () => import("@/components/three/HeroCareOrbScene"),
@@ -211,6 +213,8 @@ export default function VaultLoginPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <EmergencyMedicalIdTrigger size="compact" />
+            <SteadyHandToggleButton size="compact" />
             <ThemeToggleButton size="compact" />
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E2DDD5] text-xs font-medium text-slate-700">
               <Box className="w-3.5 h-3.5 text-[#0F766E]" />

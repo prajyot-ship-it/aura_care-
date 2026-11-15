@@ -20,6 +20,9 @@ import { TactilePillCard } from "@/components/elder/TactilePillCard";
 import { MoodCheckIn } from "@/components/elder/MoodCheckIn";
 import { ScrollChoreographySection } from "@/components/three/ScrollChoreographyCanvas";
 import { ThemeToggleButton } from "@/components/shared/ThemeProvider";
+import { VoiceCopilotOrb } from "@/components/elder/VoiceCopilotOrb";
+import { SteadyHandToggleButton } from "@/components/elder/TremorStabilizer";
+import { EmergencyMedicalIdTrigger } from "@/components/shared/EmergencyMedicalIdModal";
 
 function ElderSovereignContent() {
   const router = useRouter();
@@ -229,10 +232,21 @@ function ElderSovereignContent() {
 
           {/* Primary Ergonomic Action Controls (RULE-UX-02: >= 64px height, >= 120px width, >= 16px gap) */}
           <div className="flex flex-wrap items-center gap-4">
+            <VoiceCopilotOrb
+              elderFirstName={firstName}
+              todayDoses={todayDoses}
+              onActionCompleted={(msg) => {
+                setToastMessage(msg);
+                loadState();
+              }}
+            />
+
             <VoiceReaderButton
               scriptText={voiceScript}
               label="Read My Schedule Aloud"
             />
+
+            <SteadyHandToggleButton size="elder" />
 
             <motion.button
               type="button"
@@ -245,6 +259,19 @@ function ElderSovereignContent() {
             </motion.button>
 
             <ThemeToggleButton size="elder" />
+
+            <EmergencyMedicalIdTrigger
+              size="elder"
+              liveDoses={todayDoses.map((d) => ({
+                name: d.medication.name,
+                dosage: d.medication.dosage,
+                status: d.status,
+                time: new Date(d.scheduledFor).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              }))}
+            />
           </div>
         </div>
       </header>

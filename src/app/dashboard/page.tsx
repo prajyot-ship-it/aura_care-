@@ -29,6 +29,7 @@ import { AdherenceHeatmap } from "@/components/care-circle/AdherenceHeatmap";
 import { ScheduleModal } from "@/components/care-circle/ScheduleModal";
 import { TiltBentoCard } from "@/components/three/ScrollChoreographyCanvas";
 import { ThemeToggleButton } from "@/components/shared/ThemeProvider";
+import { PharmacistQrPassportTrigger } from "@/components/care-circle/PharmacistQrPassportModal";
 
 const CareCircleOrbit3D = dynamic(
   () => import("@/components/three/CareCircleOrbit3D"),
@@ -230,6 +231,15 @@ export default function CareCircleDashboardPage() {
 
           {/* Care-Circle Online Avatars + Role Switcher Pills */}
           <div className="flex flex-wrap items-center gap-2.5">
+            <PharmacistQrPassportTrigger
+              elderName={vault.elderName}
+              elderAge={vault.elderAge}
+              bloodType={vault.bloodType}
+              vaultCode={vault.vaultCode}
+              allergies={vault.allergies}
+              medications={medications}
+            />
+
             <ThemeToggleButton size="compact" />
 
             <div className="hidden xl:flex items-center -space-x-1.5 mr-2">
