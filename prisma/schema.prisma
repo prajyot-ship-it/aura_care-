@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model CareVault {
+  id                   String   @id @default(cuid())
+  vaultCode            String   @unique
+  elderName            String
+  elderAge             Int
+  elderEmail           String
+  bloodType            String
+  allergies            String   // JSON array of strings e.g. '["Penicillin", "Sulfa drugs"]'
+  primaryPhysician     String
+  physicianPhone       String
+  shareSymptomNotes    Boolean  @default(true)
+  requireElderApproval Boolean  @default(true)
+  autoEscalateMissed   Boolean  @default(true)
+  createdAt            DateTime @default(now())
+
+  members              CareMember[]
+  medications          Medication[]
+  doseLogs             DoseLog[]
+  scheduleProposals    ScheduleProposal[]
+  appointments         Appointment[]
+  wellnessCheckIns     WellnessCheckIn[]
+  emailDispatchLogs    EmailDispatchLog[]
+}
+
+model CareMember {
+  id                 String    @id @default(cuid())
+  vaultId            String
+  name               String
+  relationship       String
+  role               String    // ELDER_SOVEREIGN | PRIMARY_CARETAKER | FAMILY_MEMBER
+  email              String
+  passcodeHash       String
+  receiveEscalations Boolean   @default(true)
+
+  vault              CareVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId])
+}
+
+model Medication {
+  id                 String    @id @default(cuid())
+  vaultId            String
+  name               String
+  genericName        String
+  drugClass          String
+  dosage             String
+  frequency          String    // DAILY | TWICE_DAILY | THREE_TIMES_DAILY | WEEKLY
+  scheduledTimes     String    // JSON array of "HH:mm" strings
+  foodRule           String    // EMPTY_STOMACH | WITH_FOOD | BEFORE_SLEEP | ANYTIME
+  instructions       String
+  pillShape          String    // ROUND | OVAL | CAPSULE | DIAMOND
+  pillColorPrimary   String
+  pillColorSecondary String
+  pillImprint        String
+  stockCount         Int       @default(30)
+  refillThreshold    Int       @default(7)
+  status             String    @default("ACTIVE") // ACTIVE | PENDING_ELDER_APPROVAL | PAUSED
+  proposedByMemberId String?
+  proposalReason     String?
+
+  vault              CareVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  doseLogs           DoseLog[]
+  proposals          ScheduleProposal[]
+
+  @@index([vaultId])
+}
+
+model DoseLog {
+  id                 String     @id @default(cuid())
+  medicationId       String
+  vaultId            String
+  scheduledFor       DateTime
+  status             String     @default("PENDING") // PENDING | TAKEN | SNOOZED | SKIPPED | MISSED
+  loggedAt           DateTime?
+  loggedByMemberId   String?
+  loggedByName       String?
+  lockVersion        Int        @default(0)
+  note               String?
+  escalationTierSent Int        @default(0)
+
+  medication         Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  vault              CareVault  @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId, scheduledFor])
+  @@index([medicationId])
+}
+
+model ScheduleProposal {
+  id                  String      @id @default(cuid())
+  vaultId             String
+  medicationId        String?
+  actionType          String      // ADD_MED | UPDATE_DOSAGE | PAUSE_MED | ADD_APPOINTMENT
+  proposedPayload     String      // JSON serialized payload
+  plainEnglishSummary String
+  proposedByName      String
+  status              String      @default("PENDING") // PENDING | APPROVED | HELD_FOR_DOCTOR
+  elderResponseNote   String?
+  createdAt           DateTime    @default(now())
+
+  vault               CareVault   @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  medication          Medication? @relation(fields: [medicationId], references: [id], onDelete: SetNull)
+
+  @@index([vaultId, status])
+}
+
+model Appointment {
+  id               String    @id @default(cuid())
+  vaultId          String
+  doctorName       String
+  specialty        String
+  clinicLocation   String
+  appointmentDate  DateTime
+  purpose          String
+  escortMemberName String
+  elderQuestions   String    // JSON array of strings
+  prepEmailSent    Boolean   @default(false)
+  status           String    @default("UPCOMING") // UPCOMING | COMPLETED | CANCELLED
+
+  vault            CareVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId])
+}
+
+model WellnessCheckIn {
+  id                     String    @id @default(cuid())
+  vaultId                String
+  mood                   String    // GREAT | OKAY | TIRED | DIZZY | NAUSEOUS
+  bloodPressureSystolic  Int?
+  bloodPressureDiastolic Int?
+  note                   String?
+  createdAt              DateTime  @default(now())
+
+  vault                  CareVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId, createdAt])
+}
+
+model EmailDispatchLog {
+  id             String    @id @default(cuid())
+  vaultId        String
+  recipientEmail String
+  recipientName  String
+  tier           String    // UPCOMING_CUE | MISSED_NUDGE | CARE_CIRCLE_ESCALATION | APPOINTMENT_PREP | PROPOSAL_NOTICE
+  subject        String
+  htmlBody       String
+  createdAt      DateTime  @default(now())
+
+  vault          CareVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId, createdAt])
+}
