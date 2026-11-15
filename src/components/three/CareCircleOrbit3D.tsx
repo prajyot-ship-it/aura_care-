@@ -48,7 +48,7 @@ function DoseOrbitNode({
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
+    const t = clock.getElapsedTime();
 
     const targetScale = isHovered ? 1.38 : 1.0;
     groupRef.current.scale.lerp(
@@ -56,7 +56,7 @@ function DoseOrbitNode({
       0.14
     );
 
-    if (pulseRef.current && !isTaken && !reducedMotion) {
+    if (pulseRef.current && !isTaken) {
       const s = 1 + Math.sin(t * 3.5 + index) * 0.22;
       pulseRef.current.scale.set(s, s, s);
     }
@@ -121,7 +121,7 @@ function CircadianRingStage({
 
   useFrame(({ clock, pointer }) => {
     if (!stageRef.current) return;
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
+    const t = clock.getElapsedTime();
 
     // Subtle pointer tilt
     stageRef.current.rotation.y = THREE.MathUtils.lerp(

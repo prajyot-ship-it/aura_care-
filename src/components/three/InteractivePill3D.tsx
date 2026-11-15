@@ -42,17 +42,17 @@ function ProceduralPillMesh({
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
+    const t = clock.getElapsedTime();
 
     const bounce = isConfirmed
       ? Math.sin(t * 3.2) * 0.12 + 0.08
-      : Math.sin(t * 1.6) * 0.06;
+      : Math.sin(t * 1.8) * 0.07;
     groupRef.current.position.y = bounce;
 
-    if (!reducedMotion) {
-      groupRef.current.rotation.y = t * (isConfirmed ? 0.85 : 0.45);
-      groupRef.current.rotation.z = Math.sin(t * 0.9) * 0.14;
-    }
+    // Continuous autonomous 3D rotation on all axes
+    groupRef.current.rotation.y = t * (isConfirmed ? 1.15 : 0.75);
+    groupRef.current.rotation.x = 0.35 + Math.sin(t * 1.1) * 0.12;
+    groupRef.current.rotation.z = Math.sin(t * 0.9) * 0.16;
 
     if (haloRef.current) {
       const targetScale = isConfirmed ? 1.05 + Math.sin(t * 3) * 0.05 : 0.001;
@@ -353,7 +353,9 @@ export default function InteractivePill3D({
             <OrbitControls
               enableZoom={false}
               enablePan={false}
-              rotateSpeed={0.85}
+              autoRotate
+              autoRotateSpeed={2.0}
+              rotateSpeed={0.95}
             />
           </Canvas>
         </div>
@@ -437,6 +439,8 @@ export default function InteractivePill3D({
                   <OrbitControls
                     enableZoom={false}
                     enablePan={false}
+                    autoRotate
+                    autoRotateSpeed={2.2}
                     rotateSpeed={1.0}
                   />
                 </Canvas>

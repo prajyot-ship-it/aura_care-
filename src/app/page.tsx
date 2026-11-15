@@ -36,6 +36,11 @@ const HeroCareOrbScene = dynamic(
   }
 );
 
+const InteractivePill3D = dynamic(
+  () => import("@/components/three/InteractivePill3D"),
+  { ssr: false }
+);
+
 const DEMO_ROLES = [
   {
     name: "Arthur Pendelton",
@@ -306,16 +311,34 @@ export default function VaultLoginPage() {
                   </div>
                 </div>
 
-                {/* Right Half of Preview Card: Active Pill Twin & Mutex Lock Toggle */}
+                {/* Right Half of Preview Card: Auto-Rotating 3D Pill-Box Twin & Mutex Lock Toggle */}
                 <div className="md:col-span-6 space-y-3">
                   <div className="flex items-center gap-3.5">
-                    <PillSvgTwin
-                      shape={activePreview.shape}
-                      primaryColor={activePreview.primary}
-                      secondaryColor={activePreview.secondary}
-                      imprint={activePreview.imprint}
-                      size="md"
-                    />
+                    <Suspense
+                      fallback={
+                        <PillSvgTwin
+                          shape={activePreview.shape}
+                          primaryColor={activePreview.primary}
+                          secondaryColor={activePreview.secondary}
+                          imprint={activePreview.imprint}
+                          size="md"
+                        />
+                      }
+                    >
+                      <InteractivePill3D
+                        shape={activePreview.shape}
+                        primaryColor={activePreview.primary}
+                        secondaryColor={activePreview.secondary}
+                        imprint={activePreview.imprint}
+                        medName={activePreview.name}
+                        dosage={activePreview.dosage}
+                        instructions={activePreview.purpose}
+                        isConfirmed={previewLocked}
+                        size="md"
+                        reducedMotion={false}
+                        allowModalInspect={false}
+                      />
+                    </Suspense>
                     <div>
                       <span className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#F8F7F4] border border-[#E2DDD5] text-[#111827]">
                         {activePreview.time}

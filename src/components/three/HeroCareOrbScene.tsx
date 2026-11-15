@@ -42,17 +42,15 @@ function OrbitingCapsule({
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
+    const t = clock.getElapsedTime();
     const angle = offsetAngle + t * speed;
     groupRef.current.position.x = Math.cos(angle) * radius;
     groupRef.current.position.z = Math.sin(angle) * radius;
     groupRef.current.position.y =
       yOffset + Math.sin(t * 1.6 + offsetAngle) * 0.14;
 
-    if (!reducedMotion) {
-      groupRef.current.rotation.x = t * 0.8 + offsetAngle;
-      groupRef.current.rotation.z = t * 0.5 + offsetAngle;
-    }
+    groupRef.current.rotation.x = t * 0.95 + offsetAngle;
+    groupRef.current.rotation.z = t * 0.65 + offsetAngle;
 
     const targetScale = isHighlighted ? 1.22 : 1.0;
     groupRef.current.scale.lerp(
@@ -117,7 +115,7 @@ function OrbAssembly({
 
   useFrame(({ clock, pointer }) => {
     if (!rootRef.current) return;
-    const t = reducedMotion ? 0 : clock.getElapsedTime();
+    const t = clock.getElapsedTime();
 
     // Smooth decay of keypress kinetic pulse wave
     pulseValueRef.current = THREE.MathUtils.lerp(
