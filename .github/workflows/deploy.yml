@@ -17,6 +17,9 @@ concurrency:
 jobs:
   quality-and-build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
+      JWT_SECRET: "aura-care-sovereign-vault-jwt-secret-key-2026"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,8 +33,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
+      - name: Generate Prisma Client & Seed SQLite DB
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+          npx prisma db seed
 
       - name: Strict TypeScript Check
         run: npm run typecheck
