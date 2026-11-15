@@ -45,6 +45,16 @@ export interface ApiEnvelope<T> {
   error?: string;
 }
 
+export interface EmailOutboxRecord {
+  id: string;
+  recipientEmail: string;
+  recipientName: string;
+  tier: EmailTier;
+  subject: string;
+  htmlBody: string;
+  createdAt: string;
+}
+
 export interface VaultStatePayload {
   session: SessionPayload;
   vault: {

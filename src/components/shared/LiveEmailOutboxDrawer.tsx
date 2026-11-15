@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Mail, X, RefreshCw, CheckCircle2, AlertTriangle, Clock, Calendar, FileText } from "lucide-react";
-import { EmailOutboxRecord } from "@/app/api/emails/route";
-import { EmailTier } from "@/lib/types";
+import { EmailOutboxRecord, EmailTier } from "@/lib/types";
 
 interface LiveEmailOutboxDrawerProps {
   isOpen: boolean;

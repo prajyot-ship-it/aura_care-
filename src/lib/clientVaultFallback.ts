@@ -300,23 +300,21 @@ function getInitialVaultData() {
         id: "email-seed-1",
         recipientEmail: "maya.pendelton@example.com",
         recipientName: "Maya Pendelton",
-        tier: "CO_SIGN_REQUEST",
+        tier: "PROPOSAL_NOTICE",
         subject: "Co-Sign Requested: Vitamin D3 2000 IU awaiting Arthur Pendelton's Approval",
         htmlBody:
           "<div style='font-family:sans-serif;padding:16px'><h3>AURA•CARE Dignity Co-Sign Protocol</h3><p>Maya proposed adding <strong>Vitamin D3 2000 IU</strong> at 12:30 PM. Awaiting Arthur's Sovereign Sign-Off.</p></div>",
-        status: "DISPATCHED_LOCAL_OUTBOX",
-        sentAt: new Date(now.getTime() - 3600000).toISOString(),
+        createdAt: new Date(now.getTime() - 3600000).toISOString(),
       },
       {
         id: "email-seed-2",
         recipientEmail: "arthur.pendelton@example.com",
         recipientName: "Arthur Pendelton",
-        tier: "TIER_1_UPCOMING",
+        tier: "UPCOMING_CUE",
         subject: "Upcoming 08:00 AM Dose Cue: Eliquis 5 mg (Pink Oval Tablet 894)",
         htmlBody:
           "<div style='font-family:sans-serif;padding:16px'><h3>Gentle Reminder: 08:00 AM Medication Window</h3><p>Hi Arthur, your <strong>Eliquis 5 mg</strong> (Pink Oval Tablet marked 894) is scheduled for 08:00 AM.</p></div>",
-        status: "DISPATCHED_LOCAL_OUTBOX",
-        sentAt: new Date(now.getTime() - 1800000).toISOString(),
+        createdAt: new Date(now.getTime() - 1800000).toISOString(),
       },
     ],
   };
@@ -673,17 +671,17 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
     const mode = String(body.mode || "TIER_1");
     const tierMap: Record<string, { tier: string; subject: string; body: string }> = {
       SIMULATE_T_MINUS_15: {
-        tier: "TIER_1_UPCOMING",
+        tier: "UPCOMING_CUE",
         subject: "Tier 1 Upcoming Dose Cue (T-15m): Eliquis 5 mg (Oval 894)",
         body: "<div style='font-family:sans-serif;padding:16px'><h3>Tier 1 Gentle Reminder (T-15m)</h3><p>Arthur's <strong>Eliquis 5 mg</strong> is coming up in 15 minutes.</p></div>",
       },
       SIMULATE_T_PLUS_30: {
-        tier: "TIER_2_SOFT_NUDGE",
+        tier: "MISSED_NUDGE",
         subject: "Tier 2 Soft Missed-Dose Nudge (T+30m): Actionable 1-Click Check-In",
         body: "<div style='font-family:sans-serif;padding:16px'><h3>Tier 2 Soft Nudge (T+30m)</h3><p>Eliquis 5 mg is 30m past window. Use 1-click links to confirm or snooze.</p></div>",
       },
       SIMULATE_T_PLUS_90: {
-        tier: "TIER_3_ESCALATION",
+        tier: "CARE_CIRCLE_ESCALATION",
         subject: "URGENT Tier 3 Care-Circle Escalation (T+90m): Unconfirmed Anticoagulant Dose",
         body: "<div style='font-family:sans-serif;padding:16px'><h3>Tier 3 All-Hands Escalation (T+90m)</h3><p>Arthur's Eliquis 5 mg remains unconfirmed at T+90m. Care-Circle notified.</p></div>",
       },
@@ -701,8 +699,7 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
       tier: picked.tier,
       subject: picked.subject,
       htmlBody: picked.body,
-      status: "DISPATCHED_LOCAL_OUTBOX",
-      sentAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     });
     saveStore(store);
 
