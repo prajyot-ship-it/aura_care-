@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
@@ -200,38 +201,65 @@ function ElderSovereignContent() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#111827] transition-colors pb-24">
-      {/* Glassmorphic Sticky Top Dignity Bar */}
-      <header className="glass-nav sticky top-0 z-30 px-6 lg:px-10 py-5">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div>
-            <div className="flex flex-wrap items-center gap-2.5 mb-2">
-              <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0F766E]/10 text-[#0F766E] font-semibold text-sm">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Elder Sovereign Dignity Mode • CareVault {vault.vaultCode}</span>
-              </span>
-              <span className="px-3.5 py-1 rounded-full bg-white border border-[#E2DDD5] text-sm font-medium text-slate-600">
-                {todayFormatted}
-              </span>
-            </div>
+      {/* Compact Glassmorphic Sticky Top Dignity Bar (~68px height so viewport stays 90%+ open) */}
+      <header className="glass-nav sticky top-0 z-30 px-6 lg:px-10 py-2.5">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F766E]/10 text-[#0F766E] font-semibold text-xs sm:text-sm">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Elder Sovereign Dignity Mode • CareVault {vault.vaultCode}</span>
+            </span>
+            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-white border border-[#E2DDD5] text-xs font-medium text-slate-600">
+              {todayFormatted}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-emerald-50 border border-[#10B981]/40 text-xs font-semibold text-[#0F766E]">
+              {takenToday.length} Confirmed • {pendingToday.length} Upcoming
+            </span>
+          </div>
 
-            <h1 className="font-display text-[32px] sm:text-[40px] font-semibold tracking-tight text-[#111827] leading-tight">
-              Good Morning, {firstName}
-            </h1>
-            <p className="text-[22px] text-slate-600 mt-1">
-              You have{" "}
-              <strong className="text-[#0F766E] font-semibold">
-                {takenToday.length} confirmed
-              </strong>{" "}
-              and{" "}
-              <strong className="text-[#D97706] font-semibold">
-                {pendingToday.length} upcoming
-              </strong>{" "}
-              doses today.
-            </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <EmergencyMedicalIdTrigger
+              size="compact"
+              liveDoses={todayDoses.map((d) => ({
+                name: d.medication.name,
+                dosage: d.medication.dosage,
+                status: d.status,
+                time: new Date(d.scheduledFor).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              }))}
+            />
+            <SteadyHandToggleButton size="compact" />
+            <ThemeToggleButton size="compact" />
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-6 lg:px-10 pt-6">
+        {/* Non-Sticky Elder Sovereign Welcome & 64px Tactile Action Deck */}
+        <section className="bento-card p-6 sm:p-8 mb-8 space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="font-display text-[32px] sm:text-[40px] font-semibold tracking-tight text-[#111827] leading-tight">
+                Good Morning, {firstName}
+              </h1>
+              <p className="text-[22px] text-slate-600 mt-1">
+                You have{" "}
+                <strong className="text-[#0F766E] font-semibold">
+                  {takenToday.length} confirmed
+                </strong>{" "}
+                and{" "}
+                <strong className="text-[#D97706] font-semibold">
+                  {pendingToday.length} upcoming
+                </strong>{" "}
+                doses today.
+              </p>
+            </div>
           </div>
 
           {/* Primary Ergonomic Action Controls (RULE-UX-02: >= 64px height, >= 120px width, >= 16px gap) */}
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-[#E2DDD5]">
             <VoiceCopilotOrb
               elderFirstName={firstName}
               todayDoses={todayDoses}
@@ -273,10 +301,7 @@ function ElderSovereignContent() {
               }))}
             />
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 lg:px-10 pt-8">
+        </section>
         {/* Status Toast */}
         <AnimatePresence mode="wait">
           {toastMessage && (
@@ -490,20 +515,23 @@ function ElderSovereignContent() {
       </main>
 
       {/* Slide-Over "My Privacy & Autonomy" Drawer */}
-      <AnimatePresence>
-        {showPrivacyDrawer && (
+      {showPrivacyDrawer &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-xs"
+            className="fixed inset-0 z-[100] flex justify-end bg-slate-950/40 backdrop-blur-xs"
             role="dialog"
             aria-modal="true"
             aria-label="My Privacy and Autonomy Controls"
+            onClick={() => setShowPrivacyDrawer(false)}
           >
             <motion.div
               initial={shouldReduceMotion ? false : { x: "100%" }}
               animate={{ x: 0 }}
               exit={shouldReduceMotion ? {} : { x: "100%" }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full max-w-2xl bg-white h-full shadow-2xl border-l border-[#E2DDD5] p-8 overflow-y-auto flex flex-col justify-between"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl bg-white h-dvh max-h-dvh shadow-2xl border-l border-[#E2DDD5] p-8 overflow-y-auto flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between gap-4 pb-6 mb-6 border-b border-[#E2DDD5]">
@@ -636,9 +664,9 @@ function ElderSovereignContent() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 }

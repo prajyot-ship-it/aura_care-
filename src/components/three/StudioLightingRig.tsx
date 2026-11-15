@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { ContactShadows } from "@react-three/drei";
 
 interface StudioLightingRigProps {
   shadowY?: number;
@@ -12,12 +11,12 @@ interface StudioLightingRigProps {
 export function StudioLightingRig({
   shadowY = -1.35,
   shadowScale = 7,
-  shadowOpacity = 0.22,
+  shadowOpacity = 0.16,
 }: StudioLightingRigProps) {
   return (
     <>
       {/* Warm Alabaster Ambient Fill */}
-      <ambientLight intensity={0.85} color="#FAF8F5" />
+      <ambientLight intensity={0.95} color="#FAF8F5" />
 
       {/* Studio Key Light (Warm Daylight) */}
       <directionalLight
@@ -48,15 +47,20 @@ export function StudioLightingRig({
         color="#E0F2FE"
       />
 
-      {/* Soft Studio Pedestal Contact Shadow */}
-      <ContactShadows
+      {/* Lightweight Zero-FBO Studio Pedestal Disc Shadow (prevents WebGL context exhaustion) */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
         position={[0, shadowY, 0]}
-        opacity={shadowOpacity}
-        scale={shadowScale}
-        blur={2.4}
-        far={4}
-        color="#111827"
-      />
+        scale={[shadowScale * 0.22, shadowScale * 0.22, 1]}
+      >
+        <circleGeometry args={[1, 32]} />
+        <meshBasicMaterial
+          color="#0F172A"
+          transparent
+          opacity={shadowOpacity}
+          depthWrite={false}
+        />
+      </mesh>
     </>
   );
 }

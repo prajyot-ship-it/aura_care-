@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -385,14 +386,20 @@ export default function InteractivePill3D({
       </div>
 
       {/* Large Interactive 3D Pill Studio & Live Camera AR Verifier Modal */}
-      {isInspectModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-4 overflow-y-auto"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Inspect ${medName || normalizedShape} Pill in 3D`}
-        >
-          <div className="bento-card bg-white rounded-3xl max-w-xl w-full p-7 border border-[#E2DDD5] shadow-2xl my-8">
+      {isInspectModalOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-4 overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Inspect ${medName || normalizedShape} Pill in 3D`}
+            onClick={() => setIsInspectModalOpen(false)}
+          >
+            <div
+              className="bento-card bg-white rounded-3xl max-w-xl w-full p-7 border border-[#E2DDD5] shadow-2xl my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#E2DDD5]">
               <div>
                 <span className="text-xs font-mono uppercase tracking-wider text-[#0F766E] font-semibold">
@@ -545,8 +552,9 @@ export default function InteractivePill3D({
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body
+        )}
     </div>
   );
 }

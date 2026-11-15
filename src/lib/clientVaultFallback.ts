@@ -127,7 +127,7 @@ function getInitialVaultData() {
         drugClass: "THYROID_HORMONE",
         dosage: "75 mcg",
         frequency: "Once Daily (Morning)",
-        scheduledTimes: ["08:00"],
+        scheduledTimes: ["06:30"],
         foodRule: "EMPTY_STOMACH",
         instructions: "Take on an empty stomach with a full glass of water 30–60 minutes before breakfast.",
         pillShape: "CAPSULE",
@@ -580,7 +580,22 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
     );
 
     if (body.dryRun) {
-      return jsonResponse({ success: true, data: { conflictCheck: check } });
+      return jsonResponse({
+        success: true,
+        data: { evaluation: check, conflictCheck: check },
+      });
+    }
+
+    if (check.hasSevereConflict && !body.overrideConfirmed) {
+      return jsonResponse(
+        {
+          success: false,
+          error:
+            "Severe polypharmacy conflict requires explicit clinical override confirmation.",
+          data: { evaluation: check },
+        },
+        422
+      );
     }
 
     const newMedId = `med-${Date.now()}`;
@@ -627,6 +642,8 @@ async function handleClientApi(urlStr: string, init?: RequestInit): Promise<Resp
     return jsonResponse({
       success: true,
       data: {
+        stagedForElderApproval: status === "PENDING_ELDER_APPROVAL",
+        evaluation: check,
         message:
           status === "PENDING_ELDER_APPROVAL"
             ? `Submitted ${body.name} for ${store.vault.elderName}'s Sovereign Co-Sign.`

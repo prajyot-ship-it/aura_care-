@@ -27,7 +27,6 @@ function OrbitingCapsule({
   primaryColor,
   secondaryColor,
   isHighlighted,
-  reducedMotion,
 }: {
   radius: number;
   speed: number;
@@ -117,7 +116,6 @@ function OrbAssembly({
     if (!rootRef.current) return;
     const t = clock.getElapsedTime();
 
-    // Smooth decay of keypress kinetic pulse wave
     pulseValueRef.current = THREE.MathUtils.lerp(
       pulseValueRef.current,
       0,
@@ -127,7 +125,6 @@ function OrbAssembly({
     const pulseBoost = pulseValueRef.current * 0.16;
     const unlockExpand = isUnlocking || pinLength === 6 ? 0.25 : 0;
 
-    // Sinusoidal harmonic levitation + damped mouse pointer parallax
     const targetRotY = pointer.x * 0.42;
     const targetRotX = -pointer.y * 0.32;
     rootRef.current.rotation.y = THREE.MathUtils.lerp(
@@ -169,7 +166,8 @@ function OrbAssembly({
     }
 
     if (coreRef.current) {
-      const coreScale = 1 + pulseValueRef.current * 0.22 + (pinLength / 6) * 0.12;
+      const coreScale =
+        1 + pulseValueRef.current * 0.22 + (pinLength / 6) * 0.12;
       coreRef.current.scale.lerp(
         new THREE.Vector3(coreScale, coreScale, coreScale),
         0.14
@@ -179,7 +177,6 @@ function OrbAssembly({
 
   return (
     <group ref={rootRef}>
-      {/* Central Elder Sovereign Core Orb */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[0.52, 48, 48]} />
         <meshPhysicalMaterial
@@ -193,7 +190,6 @@ function OrbAssembly({
         />
       </mesh>
 
-      {/* Inner Matte-Ceramic Ring */}
       <mesh ref={innerRingRef}>
         <torusGeometry args={[0.88, 0.048, 24, 96]} />
         <meshPhysicalMaterial
@@ -204,20 +200,16 @@ function OrbAssembly({
         />
       </mesh>
 
-      {/* Middle Frosted-Glass Care-Circle Ring */}
       <mesh ref={middleRingRef}>
         <torusGeometry args={[1.24, 0.055, 28, 100]} />
         <meshPhysicalMaterial
           color="#CCFBF1"
           roughness={0.15}
           metalness={0.05}
-          transmission={0.55}
-          thickness={0.6}
           clearcoat={0.9}
         />
       </mesh>
 
-      {/* Outer Warm-Gold Sovereign Halo Ring */}
       <mesh ref={outerRingRef}>
         <torusGeometry args={[1.62, 0.032, 24, 110]} />
         <meshPhysicalMaterial
@@ -228,7 +220,6 @@ function OrbAssembly({
         />
       </mesh>
 
-      {/* 3 Orbiting Glossy 3D Medication Capsules */}
       <OrbitingCapsule
         radius={1.92}
         speed={0.45}
@@ -270,6 +261,7 @@ export default function HeroCareOrbScene({
   reducedMotion = false,
 }: HeroCareOrbSceneProps) {
   const [webglReady, setWebglReady] = useState(true);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     try {
@@ -282,28 +274,253 @@ export default function HeroCareOrbScene({
     }
   }, []);
 
-  if (!webglReady) {
-    return null;
-  }
+  const scaleBoost = 1 + pinLength * 0.04 + (isUnlocking ? 0.12 : 0);
 
   return (
     <div
       aria-hidden="true"
-      className="w-full h-full min-h-[280px] pointer-events-auto select-none"
+      onPointerMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 24;
+        const ny = ((e.clientY - rect.top) / rect.height - 0.5) * -18;
+        setTilt({ x: nx, y: ny });
+      }}
+      onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+      className="w-full h-[240px] relative overflow-hidden select-none"
     >
-      <Canvas
-        dpr={[1, 2]}
-        camera={{ position: [0, 0.2, 4.6], fov: 42 }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      {/* Always-Visible 3D Studio PBR Vector & CSS 3D Stage Underlay (Guarantees Zero Blank Canvas) */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none transition-transform duration-300 ease-out"
+        style={{
+          transform: `perspective(600px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg) scale(${scaleBoost})`,
+        }}
       >
-        <StudioLightingRig shadowY={-1.85} shadowScale={8} shadowOpacity={0.18} />
-        <OrbAssembly
-          pinLength={pinLength}
-          isUnlocking={isUnlocking}
-          activePillIndex={activePillIndex}
-          reducedMotion={reducedMotion}
-        />
-      </Canvas>
+        <svg
+          viewBox="0 0 320 220"
+          className="w-full h-full max-w-[310px] max-h-[210px] overflow-visible"
+        >
+          <defs>
+            <radialGradient id="orbCoreGrad" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stopColor="#34D399" />
+              <stop offset="55%" stopColor="#0F766E" />
+              <stop offset="100%" stopColor="#064E3B" />
+            </radialGradient>
+            <linearGradient id="ringGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.85" />
+              <stop offset="50%" stopColor="#2DD4BF" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.8" />
+            </linearGradient>
+            <linearGradient id="ringGlassGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.7" />
+            </linearGradient>
+          </defs>
+
+          {/* Pedestal Soft Studio Shadow */}
+          <ellipse
+            cx="160"
+            cy="192"
+            rx="84"
+            ry="12"
+            fill="rgba(15, 23, 42, 0.14)"
+          />
+
+          {/* Outer Warm-Gold Sovereign Gyro Ring */}
+          <g
+            style={{
+              transformOrigin: "160px 106px",
+              animation: "spin 18s linear infinite",
+            }}
+          >
+            <ellipse
+              cx="160"
+              cy="106"
+              rx="116"
+              ry="46"
+              fill="none"
+              stroke="url(#ringGoldGrad)"
+              strokeWidth="3.5"
+              strokeDasharray="10 5"
+              transform="rotate(-18 160 106)"
+            />
+          </g>
+
+          {/* Middle Frosted-Glass Care-Circle Ring */}
+          <g
+            style={{
+              transformOrigin: "160px 106px",
+              animation: "spin 12s linear infinite reverse",
+            }}
+          >
+            <ellipse
+              cx="160"
+              cy="106"
+              rx="88"
+              ry="58"
+              fill="none"
+              stroke="url(#ringGlassGrad)"
+              strokeWidth="5"
+              transform="rotate(24 160 106)"
+            />
+          </g>
+
+          {/* Inner Matte-Ceramic Ring */}
+          <ellipse
+            cx="160"
+            cy="106"
+            rx="62"
+            ry="28"
+            fill="none"
+            stroke="#0F766E"
+            strokeOpacity="0.38"
+            strokeWidth="3"
+            transform="rotate(-8 160 106)"
+          />
+
+          {/* Central Sovereign Elder Core Sphere */}
+          <circle
+            cx="160"
+            cy="106"
+            r={30 + pinLength * 1.8}
+            fill="url(#orbCoreGrad)"
+          />
+          <ellipse
+            cx="150"
+            cy="95"
+            rx="11"
+            ry="6"
+            fill="rgba(255,255,255,0.45)"
+            transform="rotate(-25 150 95)"
+          />
+
+          {/* Orbiting 3D Pill Capsule 1 (Eliquis Pink Oval) */}
+          <g
+            transform={`translate(${activePillIndex === 0 ? 52 : 58}, 64) scale(${
+              activePillIndex === 0 ? 1.18 : 0.95
+            })`}
+          >
+            <rect
+              x="-18"
+              y="-9"
+              width="36"
+              height="18"
+              rx="9"
+              fill="#F472B6"
+              stroke="#FFFFFF"
+              strokeWidth="2"
+            />
+            <text
+              x="0"
+              y="3"
+              textAnchor="middle"
+              fill="#FFFFFF"
+              fontSize="7.5"
+              fontFamily="monospace"
+              fontWeight="bold"
+            >
+              894
+            </text>
+          </g>
+
+          {/* Orbiting 3D Pill Capsule 2 (Levothyroxine Sky Capsule) */}
+          <g
+            transform={`translate(256, 68) scale(${
+              activePillIndex === 1 ? 1.18 : 0.95
+            })`}
+          >
+            <rect
+              x="-18"
+              y="-9"
+              width="18"
+              height="18"
+              rx="9"
+              fill="#38BDF8"
+            />
+            <rect
+              x="0"
+              y="-9"
+              width="18"
+              height="18"
+              rx="9"
+              fill="#E0F2FE"
+            />
+            <rect
+              x="-18"
+              y="-9"
+              width="36"
+              height="18"
+              rx="9"
+              fill="none"
+              stroke="#0284C7"
+              strokeWidth="1.5"
+            />
+            <text
+              x="0"
+              y="3"
+              textAnchor="middle"
+              fill="#0F172A"
+              fontSize="7"
+              fontFamily="monospace"
+              fontWeight="bold"
+            >
+              LV75
+            </text>
+          </g>
+
+          {/* Orbiting 3D Pill Tablet 3 (Lisinopril Round) */}
+          <g
+            transform={`translate(234, 154) scale(${
+              activePillIndex === 2 ? 1.18 : 0.95
+            })`}
+          >
+            <circle
+              cx="0"
+              cy="0"
+              r="12"
+              fill="#FFFFFF"
+              stroke="#0F766E"
+              strokeWidth="2"
+            />
+            <text
+              x="0"
+              y="3"
+              textAnchor="middle"
+              fill="#0F766E"
+              fontSize="7"
+              fontFamily="monospace"
+              fontWeight="bold"
+            >
+              L10
+            </text>
+          </g>
+        </svg>
+      </div>
+
+      {/* Live WebGL 3D Layer on Top */}
+      {webglReady && (
+        <div className="absolute inset-0">
+          <Canvas
+            dpr={[1, 1.5]}
+            camera={{ position: [0, 0.2, 4.6], fov: 42 }}
+            gl={{ antialias: true, alpha: true }}
+            onCreated={({ gl }) => {
+              gl.setClearColor(0x000000, 0);
+            }}
+          >
+            <StudioLightingRig
+              shadowY={-1.85}
+              shadowScale={8}
+              shadowOpacity={0.14}
+            />
+            <OrbAssembly
+              pinLength={pinLength}
+              isUnlocking={isUnlocking}
+              activePillIndex={activePillIndex}
+              reducedMotion={reducedMotion}
+            />
+          </Canvas>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   X,
@@ -15,10 +16,55 @@ import {
   CLINICAL_MEDICATION_PRESETS,
   MedicationPreset,
   PolypharmacyEvaluationResult,
+  evaluatePolypharmacyConflicts,
+  ExistingMedicationSummary,
 } from "@/lib/polypharmacyEngine";
 import { PolypharmacyAlert } from "./PolypharmacyAlert";
 import { PillSvgTwin } from "@/components/shared/PillSvgTwin";
 import { FoodRule, MedFrequency, PillShape } from "@/lib/types";
+
+const BASELINE_ACTIVE_MEDS: ExistingMedicationSummary[] = [
+  {
+    id: "med-lisinopril",
+    name: "Lisinopril",
+    genericName: "Lisinopril",
+    drugClass: "ACE_INHIBITOR",
+    dosage: "10 mg",
+    scheduledTimes: ["08:00"],
+    foodRule: "WITH_FOOD",
+    status: "ACTIVE",
+  },
+  {
+    id: "med-eliquis",
+    name: "Eliquis",
+    genericName: "Apixaban",
+    drugClass: "ANTICOAGULANT",
+    dosage: "5 mg",
+    scheduledTimes: ["08:00", "20:00"],
+    foodRule: "ANYTIME",
+    status: "ACTIVE",
+  },
+  {
+    id: "med-levothyroxine",
+    name: "Levothyroxine",
+    genericName: "Levothyroxine Sodium",
+    drugClass: "THYROID_HORMONE",
+    dosage: "75 mcg",
+    scheduledTimes: ["06:30"],
+    foodRule: "EMPTY_STOMACH",
+    status: "ACTIVE",
+  },
+  {
+    id: "med-atorvastatin",
+    name: "Atorvastatin",
+    genericName: "Atorvastatin Calcium",
+    drugClass: "STATIN",
+    dosage: "20 mg",
+    scheduledTimes: ["21:00"],
+    foodRule: "BEFORE_SLEEP",
+    status: "ACTIVE",
+  },
+];
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -82,8 +128,25 @@ export function ScheduleModal({
 
   const runLivePolypharmacyCheck = useCallback(async () => {
     if (!name.trim() || !dosage.trim()) return;
+    const times = parseTimes(scheduledTimesText);
+    const normalizedTimes = times.length > 0 ? times : ["08:00"];
+
+    // 1. Instantaneous synchronous client-side evaluation (works offline & on static GitHub Pages)
+    const localEval = evaluatePolypharmacyConflicts(
+      {
+        name,
+        genericName: genericName || name,
+        drugClass,
+        dosage,
+        scheduledTimes: normalizedTimes,
+        foodRule,
+      },
+      BASELINE_ACTIVE_MEDS
+    );
+    setEvaluation(localEval);
+
+    // 2. Also query server / fallback API in case additional dynamic meds were added
     try {
-      const times = parseTimes(scheduledTimesText);
       const res = await fetch("/api/medications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,19 +156,19 @@ export function ScheduleModal({
           genericName,
           drugClass,
           dosage,
-          scheduledTimes: times.length > 0 ? times : ["08:00"],
+          scheduledTimes: normalizedTimes,
           foodRule,
         }),
       });
       const json = (await res.json()) as {
         success: boolean;
-        data?: { evaluation: PolypharmacyEvaluationResult };
+        data?: { evaluation?: PolypharmacyEvaluationResult };
       };
-      if (json.success && json.data) {
+      if (json.success && json.data?.evaluation) {
         setEvaluation(json.data.evaluation);
       }
     } catch {
-      // ignore dry-run network error
+      // localEval is already set
     }
   }, [name, genericName, drugClass, dosage, scheduledTimesText, foodRule, parseTimes]);
 
@@ -115,7 +178,7 @@ export function ScheduleModal({
     }
   }, [isOpen, runLivePolypharmacyCheck]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const candidateTimes = parseTimes(scheduledTimesText);
 
@@ -212,17 +275,19 @@ export function ScheduleModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label="Add or Propose Medication with Live Polypharmacy Guardrail"
+      onClick={onClose}
     >
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-[#E2DDD5] overflow-hidden my-6"
       >
         {/* Top Modal Header */}
@@ -629,6 +694,7 @@ export function ScheduleModal({
           </div>
         </form>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }

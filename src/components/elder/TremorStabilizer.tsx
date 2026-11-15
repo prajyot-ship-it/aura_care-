@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Hand, CheckCircle2, Sparkles } from "lucide-react";
 
 const STORAGE_KEY = "aura_steady_hand_mode";
@@ -150,32 +151,36 @@ export function SteadyHandToggleButton({
         </span>
       </button>
 
-      { steadyHandActive && autoDetectedBanner && (
-        <div
-          role="status"
-          className="fixed bottom-6 left-6 z-50 max-w-md p-5 rounded-3xl bg-[#0F766E] text-white border-2 border-[#10B981] shadow-2xl flex items-start justify-between gap-4"
-        >
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-6 h-6 text-emerald-200 shrink-0 mt-0.5" />
-            <div>
-              <div className="font-display font-bold text-lg flex items-center gap-1.5">
-                <CheckCircle2 className="w-5 h-5" />
-                <span>Shake-to-Calm Stabilizer Activated</span>
-              </div>
-              <p className="text-sm text-emerald-50 mt-1 leading-snug">
-                Pointer tremor detected. Touch targets are now expanded (+18%) and accidental double-taps (340ms debounce) are filtered.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setAutoDetectedBanner(false)}
-            className="px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-xs font-semibold shrink-0"
+      {steadyHandActive &&
+        autoDetectedBanner &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="status"
+            className="fixed bottom-6 left-6 z-[100] max-w-md p-5 rounded-3xl bg-[#0F766E] text-white border-2 border-[#10B981] shadow-2xl flex items-start justify-between gap-4"
           >
-            Got it
-          </button>
-        </div>
-      )}
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-6 h-6 text-emerald-200 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-display font-bold text-lg flex items-center gap-1.5">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>Shake-to-Calm Stabilizer Activated</span>
+                </div>
+                <p className="text-sm text-emerald-50 mt-1 leading-snug">
+                  Pointer tremor detected. Touch targets are now expanded (+18%) and accidental double-taps (340ms debounce) are filtered.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAutoDetectedBanner(false)}
+              className="px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-xs font-semibold shrink-0"
+            >
+              Got it
+            </button>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

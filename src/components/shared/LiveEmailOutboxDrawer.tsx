@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Mail, X, RefreshCw, CheckCircle2, AlertTriangle, Clock, Calendar, FileText } from "lucide-react";
 import { EmailOutboxRecord, EmailTier } from "@/lib/types";
 
@@ -47,7 +48,7 @@ export function LiveEmailOutboxDrawer({
     }
   }, [isOpen, refreshTrigger, fetchEmails]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const filteredEmails =
     tierFilter === "ALL"
@@ -94,35 +95,39 @@ export function LiveEmailOutboxDrawer({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-xs"
+      className="fixed inset-0 z-[100] flex justify-end bg-slate-950/60 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-label="Live Email Outbox Inspector Drawer"
+      onClick={onClose}
     >
-      <div className="w-full max-w-5xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200">
-        {/* Header */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300">
+      <div
+        className="w-full max-w-5xl bg-white h-dvh max-h-dvh shadow-2xl flex flex-col border-l border-slate-200 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Sticky Header so Close (X) is always visible */}
+        <div className="sticky top-0 z-20 shrink-0 px-6 py-4 bg-slate-900 text-white flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 shrink-0">
               <Mail className="w-6 h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold tracking-tight">
-                  Live Email Outbox & Escalation Inspector
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-bold tracking-tight truncate">
+                  Live Email Outbox &amp; Escalation Inspector
                 </h2>
                 <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   {emails.length} Dispatched
                 </span>
               </div>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-300 truncate">
                 Dual-Channel Persistence (EmailDispatchLog + Nodemailer SMTP Bridge) — Inspect full HTML emails in real time
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={fetchEmails}
@@ -134,10 +139,11 @@ export function LiveEmailOutboxDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+              className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-1"
               aria-label="Close Email Outbox"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span>Close</span>
             </button>
           </div>
         </div>
@@ -254,6 +260,7 @@ export function LiveEmailOutboxDrawer({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

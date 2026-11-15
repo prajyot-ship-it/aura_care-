@@ -85,9 +85,6 @@ html[data-theme="night"] {
   a,
   [role="button"] {
     position: relative;
-    will-change: transform, box-shadow;
-    backdrop-filter: blur(14px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
     box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08),
       inset 0 1.5px 1px rgba(255, 255, 255, 0.72),
       inset 0 -1px 1px rgba(15, 23, 42, 0.06);
